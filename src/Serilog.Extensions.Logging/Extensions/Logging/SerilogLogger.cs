@@ -64,7 +64,8 @@ namespace Serilog.Extensions.Logging
             string messageTemplate = null;
 
             var properties = new List<LogEventProperty>();
-
+            try
+            {
             if (state is IEnumerable<KeyValuePair<string, object>> structure)
             {
                 foreach (var property in structure)
@@ -95,7 +96,13 @@ namespace Serilog.Extensions.Logging
                         properties.Add(stateTypeProperty);
                 }
             }
-
+            }
+            catch (Exception e)
+            {
+                var ev = new LogEvent(DateTimeOffset.Now, level, e, MessageTemplateParser.Parse($"Malformed log format: {Environment.StackTrace}"), new List<LogEventProperty>());
+                logger.Write(ev);
+                return;
+            }
             if (messageTemplate == null)
             {
                 string propertyName = null;
